@@ -12,8 +12,10 @@ import {
   projects,
   career,
   careerStats,
+  about,
   contact,
 } from "./content/site.mjs";
+import { toolIcons } from "./content/tool-icons.mjs";
 
 const root = dirname(fileURLToPath(import.meta.url));
 
@@ -127,13 +129,21 @@ ${footer(base, brandHref)}
 const decoration = (variant) =>
   `<img class="deco deco--${variant}" src="assets/svg/flower-pink.svg" alt="" aria-hidden="true" />`;
 
+/* The highlighted role in the hero. Both faces sit in one grid cell so the
+   box is as wide as the longer phrase; main.js turns the cube two seconds in.
+   The second face stays hidden from assistive tech until it is showing. */
+const flip = ([from, to]) =>
+  `<span class="flip" data-flip><span class="flip__cube"><span class="flip__face flip__face--front"><mark>${esc(
+    from
+  )}</mark></span><span class="flip__face flip__face--bottom" aria-hidden="true"><mark>${esc(to)}</mark></span></span></span>`;
+
 const heroSection = () => `
-      <section class="section hero shell" id="about">
+      <section class="section hero shell" id="top">
         ${decoration("a")}
         ${decoration("b")}
         <div class="hero__copy reveal">
           <img class="hero__sticker" src="assets/svg/sticker-sun-pink.svg" alt="" aria-hidden="true" />
-          <h1 class="hero__title">${esc(profile.heroLead)} <mark>${esc(profile.heroHighlight)}</mark></h1>
+          <h1 class="hero__title">${esc(profile.heroLead)} ${flip(profile.heroHighlight)}</h1>
           <p class="cta-group">
             <a class="btn" href="#work">See Portfolio</a>
             <img class="cta-group__spark" src="assets/svg/scribble-button.svg" alt="" aria-hidden="true" />
@@ -162,8 +172,14 @@ const heroSection = () => `
       </section>`;
 
 const bandSection = () => {
+  const icon = (key) => {
+    const [viewBox, d] = toolIcons[key] || [];
+    return d
+      ? `<svg class="band__icon" viewBox="${viewBox}" fill="currentColor" aria-hidden="true"><path d="${d}" /></svg>`
+      : "";
+  };
   const group = `<div class="band__group">${toolbelt
-    .map((tool) => `<span>${esc(tool)}</span>`)
+    .map((tool) => `<span class="band__tool">${icon(tool.icon)}${esc(tool.name)}</span>`)
     .join("")}</div>`;
 
   return `
@@ -172,10 +188,33 @@ const bandSection = () => {
       </div>`;
 };
 
+/* The sneak peek lives inside the card's image frame so it slides up over the
+   screenshot. Touch screens have no hover, so a "Quick look" button (a sibling
+   of the link, since buttons can't nest in anchors) toggles it instead. */
+const peek = (project) =>
+  project.peek
+    ? `
+              <span class="peek" id="peek-${esc(project.slug)}">
+                <span class="peek__eyebrow">Sneak peek</span>
+                <span class="peek__row"><b>Problem</b>${esc(project.peek.problem)}</span>
+                <span class="peek__row"><b>Solution</b>${esc(project.peek.solution)}</span>
+                <span class="peek__row"><b>Outcome</b>${esc(project.peek.outcome)}</span>
+              </span>`
+    : "";
+
+const peekToggle = (project) =>
+  project.peek
+    ? `
+          <button class="peek-toggle" type="button" aria-expanded="false" aria-controls="peek-${esc(project.slug)}">
+            <span class="peek-toggle__open">Quick look</span><span class="peek-toggle__close">Close</span>
+          </button>`
+    : "";
+
 const projectCard = (project) => `
-          <a class="card reveal" href="work/${esc(project.slug)}.html">
+        <div class="card-wrap reveal">
+          <a class="card" href="work/${esc(project.slug)}.html">
             <span class="card__media">
-              <img src="${esc(project.thumb)}" alt="${esc(`${project.name} — ${project.tagline}`)}" loading="lazy" width="464" height="293" />
+              <img src="${esc(project.thumb)}" alt="${esc(`${project.name} — ${project.tagline}`)}" loading="lazy" width="464" height="293" />${peek(project)}
             </span>${
               project.draft
                 ? `
@@ -192,7 +231,8 @@ const projectCard = (project) => `
               </span>
             </span>
             <img class="sketch" src="assets/svg/frame-border.svg" alt="" aria-hidden="true" />
-          </a>`;
+          </a>${peekToggle(project)}
+        </div>`;
 
 const workSection = () => `
       <section class="section shell" id="work">
@@ -233,8 +273,8 @@ const careerSection = () => `
             .map(
               (role) => `
             <article class="cell">
-              <span class="role__badge role__badge--${esc(role.tint)}" aria-hidden="true">
-                <img src="assets/svg/icon-${esc(role.icon)}.svg" alt="" />
+              <span class="role__logo${role.wordmark ? " role__logo--wordmark" : ""}">
+                <img src="${esc(role.logo)}" alt="${esc(role.company)} logo" loading="lazy" />
               </span>
               <h3 class="role__title">${esc(role.role)} @${esc(role.company)}</h3>
               <p class="role__meta">${esc(role.period)}</p>
@@ -242,6 +282,35 @@ const careerSection = () => `
             </article>`
             )
             .join("")}
+          </div>
+        </div>
+      </section>`;
+
+const aboutSection = () => `
+      <section class="section shell about" id="about">
+        <div class="head reveal">
+          <h2 class="head__title head__title--sm">
+            About me
+            <img class="head__underline" src="assets/svg/underline.svg" alt="" aria-hidden="true" />
+          </h2>
+          <img class="head__sticker" src="assets/svg/sticker-sun-pink.svg" alt="" aria-hidden="true" />
+        </div>
+
+        <div class="about__grid">
+          <div class="about__intro reveal">
+            <p class="about__lead">${esc(about.lead[0])} <mark>${esc(about.lead[1])}</mark>${esc(about.lead[2])}</p>
+            <ul class="about__tags" aria-label="Things I love">${about.interests
+              .map(
+                (item) => `
+              <li class="about__tag">${esc(item)}</li>`
+              )
+              .join("")}
+            </ul>
+          </div>
+
+          <div class="about__body reveal">
+            ${about.body.map((paragraph) => `<p>${esc(paragraph)}</p>`).join("\n            ")}
+            <p class="about__cta"><a href="#contact">${esc(about.cta)} <span aria-hidden="true">→</span></a></p>
           </div>
         </div>
       </section>`;
@@ -262,8 +331,8 @@ const indexPage = () =>
   layout({
     title: `${profile.name} — ${profile.role}`,
     description: profile.intro,
-    brandHref: "#about",
-    body: [heroSection(), bandSection(), workSection(), careerSection(), contactSection()].join("\n"),
+    brandHref: "#top",
+    body: [heroSection(), bandSection(), workSection(), careerSection(), aboutSection(), contactSection()].join("\n"),
   });
 
 /* ------------------------------------------------------------- case studies */

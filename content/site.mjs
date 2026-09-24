@@ -5,8 +5,9 @@ export const profile = {
   name: "Houssem Setti",
   role: "Product Manager & Builder",
   // The hero headline is split so the highlighted words can be wrapped in a marker.
+  // The highlight cube-flips from the first entry to the second two seconds in.
   heroLead: "I’m Houssem Setti, I’m a",
-  heroHighlight: "Product manager",
+  heroHighlight: ["Product manager", "Product builder"],
   intro:
     "Engineer by training, designer by passion, PM by choice. I turn complex problems into products people actually use.",
   location: "Paris, France",
@@ -22,19 +23,32 @@ export const profile = {
 // The nav bar. `href` is an in-page anchor; the yellow marker slides to whichever
 // section is currently on screen.
 export const nav = [
-  { label: "About //", href: "#about" },
   { label: "Portfolio", href: "#work" },
+  { label: "About //", href: "#about" },
   { label: "Hire Me", href: "#contact" },
 ];
 
-// The black band under the hero.
-export const toolbelt = ["Figma", "Jira", "Claude code", "Notion", "Amplitude"];
+// The black band under the hero. `icon` is a key in content/tool-icons.mjs.
+export const toolbelt = [
+  { name: "Figma", icon: "figma" },
+  { name: "Jira", icon: "jira" },
+  { name: "Claude code", icon: "claude" },
+  { name: "Notion", icon: "notion" },
+  { name: "Amplitude", icon: "amplitude" },
+];
 
 // Projects render as cards in the 2x2 grid and each get their own page under /work/.
 // `name` / `tagline` are the two lines printed on the card.
+// `peek` is the sneak peek that slides over the card image on hover (or behind
+// the "Quick look" button on touch screens) — keep each line short.
 export const projects = [
   {
     slug: "soft-ai-training-platform",
+    peek: {
+      problem: "Sales teams rarely get a safe place to practise before a real call.",
+      solution: "An AI training platform with realistic avatars and real-time coaching.",
+      outcome: "Live MVP in one month, a team of six led, 3x faster specs with Claude.",
+    },
     name: "Soft",
     tagline: "AI training platform",
     thumb: "assets/img/work-soft-ai-training-platform.png",
@@ -87,6 +101,11 @@ export const projects = [
   },
   {
     slug: "incenteev-ai-knowledge-bot",
+    peek: {
+      problem: "Knowledge bases held the answers, but nobody could find them.",
+      solution: "A chat assistant that answers from company docs and cites its sources.",
+      outcome: "A flagship AI launch, and the pattern reused for later AI features.",
+    },
     name: "Incenteev",
     tagline: "AI knowledge bot",
     thumb: "assets/img/work-incenteev-ai-knowledge-bot.png",
@@ -140,6 +159,11 @@ export const projects = [
   },
   {
     slug: "incenteev-lms-feature",
+    peek: {
+      problem: "Programs hadn’t changed since launch and no longer matched the product.",
+      solution: "A UI/UX redesign on the new design system, with zero backend changes.",
+      outcome: "Discovery to final UI in one month, as a PM and designer duo.",
+    },
     name: "Incenteev",
     tagline: "LMS redesign",
     thumb: "assets/img/work-incenteev-lms-feature.png",
@@ -218,6 +242,11 @@ export const projects = [
   },
   {
     slug: "chassle-ui-design",
+    peek: {
+      problem: "Handing off everyday jobs, from furniture to moving house, is a hassle.",
+      solution: "The interfaces and visual language for a TaskRabbit-style marketplace.",
+      outcome: "Screens and branding, with the full case study on Behance.",
+    },
     name: "Chassle",
     tagline: "UI design",
     thumb: "assets/img/work-chassle-ui-design.png",
@@ -250,38 +279,36 @@ export const careerStats = [
 ];
 
 // Career renders as the bordered grid on the index. Sourced from the CV.
-// `icon` / `tint` pick the badge at the top of each cell.
+// `logo` is the company mark at the top of each cell. Square app icons fill
+// their tile; `wordmark: true` gets a wide white tile instead.
 export const career = [
   {
     role: "Lead Product Manager",
     company: "Soft.eu",
     period: "2026",
-    icon: "star",
-    tint: "yellow",
+    logo: "assets/img/logos/soft.png",
     note: "MVP live in one month from scratch, leading four developers and two designers.",
   },
   {
     role: "Product Manager",
     company: "Incenteev",
     period: "2024",
-    icon: "hash",
-    tint: "purple",
+    logo: "assets/img/logos/incenteev.png",
     note: "30+ sprints as sole PM, 20+ discovery subjects owned end-to-end including two AI initiatives.",
   },
   {
     role: "UX/UI Designer",
     company: "Rooly",
     period: "2023",
-    icon: "heart",
-    tint: "red",
+    logo: "assets/img/logos/rooly.png",
     note: "A design system plus 100+ wireframes and interfaces, integrating three apps into one platform.",
   },
   {
     role: "UX/UI Instructor",
     company: "GOMYCODE",
     period: "2021",
-    icon: "burst",
-    tint: "sky",
+    logo: "assets/img/logos/gomycode.png",
+    wordmark: true,
     note: "100+ students guided to graduation and 10+ new instructors mentored.",
   },
 ];
@@ -308,6 +335,19 @@ export const skills = {
     "Problem Solving", "Teamwork", "Team Leadership",
   ],
   languages: ["French — Advanced", "English — Advanced", "Arabic — Native"],
+};
+
+// The About me section, just before the contact box. `lead` is split so the
+// highlighted words can take the marker; `interests` render as stickers.
+export const about = {
+  lead: ["Hi, I’m Houssem. What I’ve loved doing since I was a kid is", "solving problems", "."],
+  body: [
+    "Whether it’s fixing my bike or figuring out how to double a feature’s usage, it’s the same itch. I’m an engineer by training and a designer by passion, and after a few years working as a designer I decided to combine both skills. That’s how my passion for product management was born.",
+    "As for my personality: I’m a sociable person. I love human interaction and conversation, especially the spontaneous kind. I like being clean and structured, in my professional life as much as my personal one, and I love people who smile often and are easygoing.",
+    "I’m passionate about football and cars (it may be a cliché, but I love them anyway), and I enjoy sports of all kinds. And like everyone, I sometimes get obsessed with something for a short while, then completely forget about it.",
+  ],
+  interests: ["Football", "Cars", "Sports of all kinds", "Spontaneous chats", "Short-lived obsessions"],
+  cta: "Want to get to know me better? Let’s get in touch!",
 };
 
 // The closing call to action.

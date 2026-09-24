@@ -15,7 +15,13 @@
 
   /* iOS treats a touch as "cancelled" the moment it leaves the control, so
      the pressed state is dropped on leave / cancel as well as on release. */
-  const PRESSABLE = ".btn, .card, .nav__link, .nav__brand, .nav__toggle, .social, .back, .work-nav__link";
+  const PRESSABLE =
+    ".btn, .card, .nav__link, .nav__brand, .nav__toggle, .social, .back, .work-nav__link, .peek-toggle";
+
+  /* `pointerleave` also fires with the document itself as its target, which
+     has no `closest`. */
+  const pressableFrom = (event) =>
+    event.target instanceof Element ? event.target.closest(PRESSABLE) : null;
 
   const press = (el) => el.classList.add("is-pressed");
   const release = (el) => el.classList.remove("is-pressed");
@@ -23,7 +29,7 @@
   document.addEventListener(
     "pointerdown",
     (event) => {
-      const target = event.target.closest(PRESSABLE);
+      const target = pressableFrom(event);
       if (target) press(target);
     },
     { passive: true }
@@ -33,7 +39,7 @@
     document.addEventListener(
       type,
       (event) => {
-        const target = event.target.closest(PRESSABLE);
+        const target = pressableFrom(event);
         if (target) release(target);
       },
       { passive: true }
@@ -49,11 +55,11 @@
   /* Keyboard activation gets the same spring, briefly. */
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
-    const target = event.target.closest(PRESSABLE);
+    const target = pressableFrom(event);
     if (target) press(target);
   });
   document.addEventListener("keyup", (event) => {
-    const target = event.target.closest(PRESSABLE);
+    const target = pressableFrom(event);
     if (target) release(target);
   });
 
@@ -137,6 +143,87 @@
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") closeMenu();
+    });
+  }
+
+  /* --------------------------------------------------------- sticky nav */
+
+  /* Past the first few pixels of scroll the boxed nav grows into a thin
+     full-width bar. The wrapper's height is pinned to its resting size first,
+     so the bar slimming down never nudges the page under it. */
+  const navWrap = document.querySelector(".nav-wrap");
+
+  if (navWrap) {
+    const lockHeight = () => {
+      const stuck = navWrap.classList.contains("is-stuck");
+      navWrap.classList.add("is-measuring");
+      navWrap.classList.remove("is-stuck");
+      navWrap.style.height = "";
+      navWrap.style.height = `${navWrap.offsetHeight}px`;
+      navWrap.classList.toggle("is-stuck", stuck);
+      void navWrap.offsetHeight; // settle styles before transitions come back
+      navWrap.classList.remove("is-measuring");
+    };
+
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      navWrap.classList.toggle("is-stuck", window.scrollY > 8);
+    };
+
+    lockHeight();
+    update();
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(update);
+      },
+      { passive: true }
+    );
+    window.addEventListener("resize", lockHeight, { passive: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(lockHeight);
+  }
+
+  /* ---------------------------------------------------------- hero flip */
+
+  /* Two seconds in, "Product manager" rolls over to "Product builder". */
+  const flip = document.querySelector("[data-flip]");
+
+  if (flip) {
+    window.setTimeout(() => {
+      flip.classList.add("is-flipped");
+      const [front, bottom] = flip.querySelectorAll(".flip__face");
+      front.setAttribute("aria-hidden", "true");
+      bottom.removeAttribute("aria-hidden");
+    }, 2000);
+  }
+
+  /* --------------------------------------------------------- project peek */
+
+  /* Hover shows the sneak peek on desktop. Touch screens get a "Quick look"
+     button instead; only one card peeks at a time, and tapping anywhere else
+     puts it away. Tapping the card itself still opens the case study. */
+  const peekToggles = Array.from(document.querySelectorAll(".peek-toggle"));
+
+  const setPeek = (toggle, open) => {
+    toggle.parentElement.classList.toggle("is-peeking", open);
+    toggle.setAttribute("aria-expanded", String(open));
+  };
+
+  peekToggles.forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      const open = toggle.getAttribute("aria-expanded") !== "true";
+      peekToggles.forEach((other) => setPeek(other, false));
+      setPeek(toggle, open);
+    });
+  });
+
+  if (peekToggles.length) {
+    document.addEventListener("click", (event) => {
+      if (event.target.closest(".card-wrap")) return;
+      peekToggles.forEach((toggle) => setPeek(toggle, false));
     });
   }
 

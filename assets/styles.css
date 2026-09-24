@@ -189,26 +189,50 @@ button { font: inherit; color: inherit; background: none; border: 0; }
 
 /* --- Nav ------------------------------------------------------------------ */
 
+/* Floats as a boxed bar at the top of the page. Once the page scrolls, main.js
+   adds `.is-stuck` and the box grows into a thinner, full-width bar pinned to
+   the top edge. main.js also locks the wrapper's height to its resting size,
+   so the bar slimming down never shifts the content underneath. */
 .nav-wrap {
   position: sticky;
-  top: clamp(0.75rem, 2vw, 1.75rem);
+  top: 0;
   z-index: 50;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
   padding-inline: var(--gutter);
   padding-top: clamp(0.75rem, 2vw, 1.75rem);
   pointer-events: none;
+  transition: padding var(--dur-slow) var(--ease-ios);
 }
+.nav-wrap.is-stuck { padding: 0; }
+.nav-wrap.is-measuring,
+.nav-wrap.is-measuring * { transition: none !important; }
 
 .nav {
+  --nav-py: clamp(0.7rem, 1.5vw, 1.375rem);
   position: relative;
+  flex: 0 1 auto;
   display: flex;
   align-items: stretch;
+  /* No effect while the box hugs its content; as it grows, the brand and the
+     links part to either end. */
+  justify-content: space-between;
   background: var(--card);
   border: var(--bw) solid var(--ink);
   box-shadow: 6px 6px 0 var(--shadow-soft);
   pointer-events: auto;
-  transition: box-shadow var(--dur) var(--ease-ios), transform var(--dur) var(--ease-ios);
+  transition:
+    flex-grow var(--dur-slow) var(--ease-ios),
+    border-width var(--dur-slow) var(--ease-ios),
+    box-shadow var(--dur) var(--ease-ios),
+    transform var(--dur) var(--ease-ios);
+}
+.is-stuck .nav {
+  --nav-py: clamp(0.45rem, 0.8vw, 0.75rem);
+  flex-grow: 1;
+  border-width: 0 0 var(--bw);
+  box-shadow: 0 4px 0 var(--shadow-soft);
 }
 
 /* The four little outlined squares pinned to the nav corners. */
@@ -218,7 +242,9 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   height: 14px;
   background: var(--card);
   border: var(--bw-hair) solid var(--ink);
+  transition: opacity var(--dur) var(--ease-ios), transform var(--dur) var(--ease-ios);
 }
+.is-stuck .nav__corner { opacity: 0; transform: scale(0.4); }
 .nav__corner--tl { left: calc(var(--bw) * -1 - 7px); top: calc(var(--bw) * -1 - 7px); }
 .nav__corner--tr { right: calc(var(--bw) * -1 - 7px); top: calc(var(--bw) * -1 - 7px); }
 .nav__corner--bl { left: calc(var(--bw) * -1 - 7px); bottom: calc(var(--bw) * -1 - 7px); }
@@ -228,16 +254,21 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   display: flex;
   align-items: center;
   gap: clamp(0.5rem, 1vw, 0.9375rem);
-  padding: clamp(0.7rem, 1.5vw, 1.375rem) clamp(1rem, 2vw, 1.75rem);
+  padding: var(--nav-py, clamp(0.7rem, 1.5vw, 1.375rem)) clamp(1rem, 2vw, 1.75rem);
   font-size: var(--t-brand);
   color: var(--ink-soft);
   text-decoration: none;
-  transition: transform var(--dur) var(--ease-spring);
+  transition:
+    transform var(--dur) var(--ease-spring),
+    padding var(--dur-slow) var(--ease-ios);
 }
 .nav__brand img {
   width: clamp(1.5rem, 3.4vw, 3.0625rem);
-  transition: transform var(--dur-slow) var(--ease-spring);
+  transition:
+    transform var(--dur-slow) var(--ease-spring),
+    width var(--dur-slow) var(--ease-ios);
 }
+.is-stuck .nav__brand img { width: clamp(1.25rem, 2.4vw, 2.25rem); }
 @media (hover: hover) {
   .nav__brand:hover img { transform: rotate(90deg) scale(1.1); }
 }
@@ -257,13 +288,15 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   position: relative;
   display: flex;
   align-items: center;
-  padding: clamp(0.7rem, 1.5vw, 1.375rem) clamp(0.8rem, 1.6vw, 1.5rem);
+  padding: var(--nav-py) clamp(0.8rem, 1.6vw, 1.5rem);
   font-size: var(--t-nav);
   font-weight: 500;
   color: var(--ink-soft);
   text-decoration: none;
   white-space: nowrap;
-  transition: transform var(--dur) var(--ease-spring);
+  transition:
+    transform var(--dur) var(--ease-spring),
+    padding var(--dur-slow) var(--ease-ios);
 }
 .nav__link span { position: relative; z-index: 1; }
 .nav__link.is-pressed { transform: scale(0.92); }
@@ -273,7 +306,7 @@ button { font: inherit; color: inherit; background: none; border: 0; }
 .nav__marker {
   position: absolute;
   left: 0;
-  bottom: clamp(0.9rem, 2vw, 1.55rem);
+  bottom: calc(var(--nav-py) + 0.2rem);
   height: 10px;
   background: var(--yellow);
   transform: translateX(var(--marker-x, 0)) scaleX(var(--marker-sx, 0));
@@ -282,6 +315,7 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   opacity: 0;
   transition:
     transform var(--dur-slow) var(--ease-ios),
+    bottom var(--dur-slow) var(--ease-ios),
     opacity var(--dur) var(--ease-ios);
   pointer-events: none;
 }
@@ -290,10 +324,12 @@ button { font: inherit; color: inherit; background: none; border: 0; }
 .nav__toggle {
   display: none;
   align-items: center;
-  padding: clamp(0.7rem, 1.5vw, 1.375rem) clamp(0.9rem, 2vw, 1.25rem);
+  padding: var(--nav-py) clamp(0.9rem, 2vw, 1.25rem);
   border-left: var(--bw-hair) solid var(--ink);
   cursor: pointer;
-  transition: transform var(--dur) var(--ease-spring);
+  transition:
+    transform var(--dur) var(--ease-spring),
+    padding var(--dur-slow) var(--ease-ios);
 }
 .nav__toggle.is-pressed { transform: scale(0.9); }
 .nav__toggle span {
@@ -337,6 +373,7 @@ button { font: inherit; color: inherit; background: none; border: 0; }
     visibility: visible;
     transition-delay: 0s;
   }
+  .is-stuck .nav__list { top: 100%; left: 0; right: 0; border-inline-width: 0; }
   .nav__list li + li { border-left: 0; border-top: var(--bw-hair) solid var(--ink); }
   .nav__brand + .nav__list { border-left: 0; }
   .nav__link { justify-content: flex-start; padding: 1rem 1.25rem; }
@@ -378,6 +415,34 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+
+/* The role cube-flips from "Product manager" to "Product builder": two faces
+   on a box as deep as one line, the second on its underside. Turning the box
+   90° rolls the new phrase up into view. Both faces share one grid cell, so
+   the box is as wide as the longer phrase and nothing reflows mid-turn. */
+.flip {
+  --half: 0.63em; /* half the hero line-height */
+  display: inline-grid;
+  perspective: 700px;
+}
+.flip__cube {
+  display: grid;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--half) * -1));
+  transition: transform 900ms var(--ease-spring);
+}
+.flip.is-flipped .flip__cube {
+  transform: translateZ(calc(var(--half) * -1)) rotateX(90deg);
+}
+.flip__face {
+  grid-area: 1 / 1;
+  display: block;
+  white-space: nowrap;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip__face--front { transform: translateZ(var(--half)); }
+.flip__face--bottom { transform: rotateX(-90deg) translateZ(var(--half)); }
 
 /* --- Hero: the framed photo ---------------------------------------------- */
 
@@ -482,6 +547,18 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   font-size: var(--t-h3);
   font-weight: 500;
   white-space: nowrap;
+}
+
+/* Each tool's mark, drawn in currentColor so the band stays black and white. */
+.band__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.band__icon {
+  flex: none;
+  width: 0.85em;
+  height: 0.85em;
 }
 
 @keyframes drift {
@@ -650,6 +727,88 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   rotate: -3deg;
 }
 
+/* --- Project sneak peek --------------------------------------------------- */
+
+.card-wrap { position: relative; }
+
+/* Sits inside the image frame and slides up over the screenshot on hover or
+   keyboard focus. Sized in cqi so it tracks the card, like the card text. */
+.peek {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2cqi;
+  padding: 4cqi 5cqi;
+  background: var(--yellow);
+  color: var(--ink);
+  transform: translateY(101%);
+  transition: transform var(--dur-slow) var(--ease-ios);
+}
+
+.peek__eyebrow {
+  padding: 0.3em 0.65em;
+  background: var(--ink);
+  color: var(--yellow);
+  font-size: clamp(0.625rem, 2.4cqi, 0.875rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  rotate: -2deg;
+}
+
+.peek__row {
+  display: block;
+  font-size: clamp(0.75rem, 3.1cqi, 1.125rem);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.peek__row b {
+  margin-right: 0.45em;
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (hover: hover) {
+  .card:hover .peek { transform: none; }
+}
+.card:focus-visible .peek,
+.card-wrap.is-peeking .peek { transform: none; }
+
+/* Touch screens have no hover, so they get a button in the image corner. */
+.peek-toggle {
+  position: absolute;
+  top: calc(8.4% + 0.6rem);
+  right: calc(6.84% + 0.6rem);
+  z-index: 3;
+  display: none;
+  padding: 0.4em 0.85em;
+  background: var(--card);
+  border: var(--bw-hair) solid var(--ink);
+  border-radius: 99px;
+  box-shadow: 3px 3px 0 var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform var(--dur) var(--ease-spring),
+    background-color var(--dur-fast) var(--ease-ios);
+}
+.peek-toggle.is-pressed { transform: scale(0.9); }
+.peek-toggle__close { display: none; }
+.is-peeking .peek-toggle { background: var(--ink); color: var(--yellow); }
+.is-peeking .peek-toggle__open { display: none; }
+.is-peeking .peek-toggle__close { display: inline; }
+
+@media (hover: none) {
+  .peek-toggle { display: inline-flex; }
+}
+
 @media (max-width: 760px) {
   .work__grid { grid-template-columns: minmax(0, 1fr); }
 }
@@ -693,23 +852,38 @@ button { font: inherit; color: inherit; background: none; border: 0; }
   font-weight: 500;
 }
 
-.role__badge {
-  display: grid;
-  place-items: center;
-  width: clamp(3rem, 4.9vw, 4.375rem);
-  aspect-ratio: 1;
+/* Company marks. Square app icons fill a rounded tile; a wordmark gets a
+   wide white tile of the same height. */
+.role__logo {
+  --tile: clamp(3rem, 4.9vw, 4.375rem);
+  display: block;
+  width: var(--tile);
+  height: var(--tile);
+  overflow: hidden;
+  background: var(--card);
   border: var(--bw-hair) solid var(--ink);
-  border-radius: 50%;
+  border-radius: calc(var(--tile) * 0.24);
+  box-shadow: 3px 3px 0 var(--ink);
   margin-bottom: clamp(0.85rem, 1.3vw, 1.1875rem);
   transition: transform var(--dur-slow) var(--ease-spring);
 }
-.role__badge img { width: 58%; }
-.cell:hover .role__badge { transform: rotate(-12deg) scale(1.08); }
-
-.role__badge--yellow { background: var(--yellow); }
-.role__badge--purple { background: var(--purple); }
-.role__badge--red { background: var(--red); }
-.role__badge--sky { background: var(--sky); }
+.role__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.role__logo--wordmark {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  padding-inline: calc(var(--tile) * 0.3);
+}
+.role__logo--wordmark img {
+  width: auto;
+  height: 28%;
+  object-fit: contain;
+}
+.cell:hover .role__logo { transform: rotate(-8deg) scale(1.06); }
 
 .role__title {
   font-size: var(--t-title);
@@ -731,6 +905,85 @@ button { font: inherit; color: inherit; background: none; border: 0; }
 @media (max-width: 860px) {
   .career__grid { grid-template-columns: minmax(0, 1fr); }
   .career__roles { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* --- About ---------------------------------------------------------------- */
+
+.about__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: clamp(2rem, 6vw, 5.5rem);
+  align-items: start;
+}
+
+.about__lead {
+  font-size: clamp(1.5rem, 3vw, 2.625rem);
+  font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+}
+.about__lead mark {
+  background: linear-gradient(var(--yellow), var(--yellow)) 0 88% / 100% 0.62em no-repeat;
+  color: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* The interests, as a loose pile of stickers. */
+.about__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.6rem, 1.2vw, 0.9rem);
+  margin-top: clamp(1.5rem, 3.4vw, 2.75rem);
+}
+.about__tag {
+  --tag-bg: var(--yellow);
+  --tag-tilt: -2deg;
+  padding: 0.45em 0.95em;
+  background: var(--tag-bg);
+  border: var(--bw-hair) solid var(--ink);
+  border-radius: 99px;
+  box-shadow: 3px 3px 0 var(--ink);
+  font-size: clamp(0.875rem, 1.3vw, 1.125rem);
+  font-weight: 600;
+  rotate: var(--tag-tilt);
+  transition: transform var(--dur) var(--ease-spring);
+}
+.about__tag:nth-child(5n + 2) { --tag-bg: var(--purple); --tag-tilt: 1.5deg; }
+.about__tag:nth-child(5n + 3) { --tag-bg: var(--sky); --tag-tilt: -1deg; }
+.about__tag:nth-child(5n + 4) { --tag-bg: var(--red); --tag-tilt: 2.5deg; }
+.about__tag:nth-child(5n + 5) { --tag-bg: var(--blue); --tag-tilt: -3deg; }
+@media (hover: hover) {
+  .about__tag:hover { transform: translateY(-3px) rotate(4deg); }
+}
+
+.about__body p {
+  max-width: 60ch;
+  line-height: 1.5;
+}
+.about__body p + p { margin-top: 0.9em; }
+
+.about__body .about__cta { margin-top: clamp(1.5rem, 3vw, 2.25rem); }
+.about__cta a {
+  font-size: var(--t-lead);
+  font-weight: 700;
+  line-height: 1.3;
+  text-decoration: underline;
+  text-decoration-color: var(--yellow);
+  text-decoration-thickness: 0.4em;
+  text-underline-offset: -0.18em;
+  text-decoration-skip-ink: none;
+}
+.about__cta a span {
+  display: inline-block;
+  transition: transform var(--dur) var(--ease-spring);
+}
+@media (hover: hover) {
+  .about__cta a:hover span { transform: translateX(6px); }
+}
+
+@media (max-width: 860px) {
+  .about__grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* --- Contact -------------------------------------------------------------- */
